@@ -1,2 +1,2 @@
-# RGB-Dumper
-Your local rgb dumper
+# Team Unity Tree Sprite Cutter
+Your local sprite cutter
