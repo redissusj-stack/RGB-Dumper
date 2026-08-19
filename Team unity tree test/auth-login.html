@@ -257,9 +257,11 @@
           return;
         }
 
-        // Hide token section - only show after admin approval
-        tokenSection.style.display = 'none';
-        status.textContent = 'Account request submitted. An admin can now review it from the admin panel.';
+        // Show token section with the generated token
+        const user = result.user;
+        document.getElementById('generated-token').textContent = user.token;
+        tokenSection.style.display = 'block';
+        status.textContent = 'Account created successfully!';
         status.className = 'status success';
         
         // Disable form after success
