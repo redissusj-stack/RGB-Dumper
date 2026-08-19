@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test</title>
+</head>
+<body>
+  <h1>Testing GitHub Pages</h1>
+  <p id="status">Loading...</p>
+  
+  <script>
+    // Test if config.js and auth work
+    window.AUTH_API_URL = '';
+    
+    const script1 = document.createElement('script');
+    script1.src = 'https://redissusj-stack.github.io/RGB-Dumper/config.js';
+    script1.onload = () => {
+      document.getElementById('status').innerHTML = `
+        Config loaded. API URL: ${window.AUTH_API_URL}
+        <br/>
+        Testing connection...
+      `;
+      
+      // Test the API
+      fetch(window.AUTH_API_URL, { method: 'GET' })
+        .then(r => {
+          document.getElementById('status').innerHTML += `<br/>API Response: ${r.status}`;
+        })
+        .catch(e => {
+          document.getElementById('status').innerHTML += `<br/>API Error: ${e.message}`;
+        });
+    };
+    document.head.appendChild(script1);
+  </script>
+</body>
+</html>

@@ -11,7 +11,12 @@
   }
 
   function readSharedState() {
-    if (typeof XMLHttpRequest === 'undefined' || !/^https?:\/\//i.test(AUTH_API_URL) && AUTH_API_URL.charAt(0) !== '/') {
+    if (typeof XMLHttpRequest === 'undefined') {
+      return null;
+    }
+
+    // Try the configured AUTH_API_URL
+    if (!/^https?:\/\//i.test(AUTH_API_URL) && AUTH_API_URL.charAt(0) !== '/') {
       return null;
     }
 
@@ -19,13 +24,14 @@
       const request = new XMLHttpRequest();
       request.open('GET', AUTH_API_URL, false);
       request.setRequestHeader('Accept', 'application/json');
+      request.timeout = 3000; // 3 second timeout
       request.send();
       if (request.status >= 200 && request.status < 300) {
         const state = JSON.parse(request.responseText);
         return { users: state.users || {}, deletedUsers: state.deletedUsers || {} };
       }
     } catch (error) {
-      // Use the browser store while the shared service is unavailable.
+      // Network error or timeout - will fall back to localStorage
     }
 
     return null;
