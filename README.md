@@ -1,28 +1,27 @@
 # Team Unity Tree Sprite Cutter
 Your local RGB dumper and Team Unity Tree sprite tools.
 
-## 🚀 Quick Start
+## 🚀 Live Demo
+**https://redissusj-stack.github.io/RGB-Dumper/**
 
-**Web App (GitHub Pages)**: https://redissusj-stack.github.io/RGB-Dumper/
+✅ All tools work immediately  
+✅ Account creation works  
+✅ Admin panel works on same device  
 
-**Problem**: Account creation doesn't work without the backend
+⚠️ **Cross-device account sharing** requires a 2-minute backend deployment (see [WHAT_WORKS.md](WHAT_WORKS.md))
 
-**Solution**: Deploy the auth backend (takes 2 minutes):
+## Quick Test
+1. Visit https://redissusj-stack.github.io/RGB-Dumper/
+2. Click "Create Account" at the top
+3. Enter a username, create account
+4. **Your token will appear** - save it!
+5. Go back and click "Sign In" to test login
 
-### Deploy Backend to Render (Free)
-1. Go to https://render.com and sign up (free)
-2. Click "New +" → "Web Service"
-3. Connect your GitHub account
-4. Authorize and select this repository
-5. Fill in:
-   - **Name**: `rgb-dumper-auth-api`
-   - **Start Command**: `cd "Team unity tree test" && python3 auth-server.py`
-   - **Plan**: Free
-6. Click "Create Web Service"
-7. Wait ~2 minutes for deployment
-8. **DONE!** The app will automatically use your deployed backend
-
-After deployment, account creation will work globally from any region.
+## Full Setup (Cross-Device Accounts)
+See [WHAT_WORKS.md](WHAT_WORKS.md) for:
+- What works now ✅
+- What needs a backend ⏳
+- Easy deployment options (Render, Railway, Replit)
 
 ## GitHub Pages
 
