@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sprite Sheet Cutter</title>
+    <script>
+      (function () {
+        try {
+          const savedTheme = localStorage.getItem('sprite-cutter-theme');
+          const theme = savedTheme === 'light' ? 'light' : 'dark';
+          document.documentElement.setAttribute('data-theme', theme);
+        } catch (error) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      })();
+    </script>
+    <link rel="stylesheet" href="../assets/style.css?v=3" />
+    <script src="../assets/auth-system.js"></script>
+    <script src="../assets/auth-gate.js"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="container nav">
+        <div class="brand">Unity Sprite Cutter</div>
+        <nav>
+          <a href="../index.html">Home</a>
+          <a href="sprite-cutter.html">Sprite Sheet</a>
+          <a href="xml-cutter.html">.XML Cutter</a>
+          <a href="meta-cutter.html">Meta Cutter</a>
+          <a href="rgb-dumper.html">RGB Dumper</a>
+        </nav>
+        <div class="theme-switcher" aria-label="Theme switcher" data-theme-switcher>
+          <button class="theme-toggle" type="button" data-theme-option="light" aria-pressed="false">Light</button>
+          <button class="theme-toggle is-active" type="button" data-theme-option="dark" aria-pressed="true">Dark</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <div class="utility-actions">
+        <a class="button secondary" href="../auth-login.html">Login</a>
+        <a class="button secondary" href="../auth-admin.html?from=sprite" id="admin-link" hidden>Admin Panel</a>
+      </div>
+      <div class="page-header">
+        <p class="eyebrow">Sprite Sheet</p>
+        <h1>Cut a spritesheet into PNG frames</h1>
+      </div>
+
+      <div class="workspace">
+        <section class="panel">
+          <form id="sprite-form">
+            <label>
+              Spritesheet image
+              <input id="sprite-sheet-file" type="file" accept="image/*" />
+            </label>
+
+            <div class="row">
+              <label>
+                Padding
+                <input id="padding" type="number" min="0" value="0" />
+              </label>
+              <label>
+                Gap
+                <input id="gap" type="number" min="0" value="0" />
+              </label>
+            </div>
+
+            <p class="status">Auto-detects the sprite grid from the sheet and names the export folder from the file automatically.</p>
+
+            <div class="row">
+              <label>
+                Sprite rotation
+                <select id="sprite-rotation">
+                  <option value="0">0°</option>
+                  <option value="90" selected>90°</option>
+                  <option value="180">180°</option>
+                  <option value="270">270°</option>
+                </select>
+              </label>
+              <label>
+                &nbsp;
+              </label>
+            </div>
+
+            <label>
+              <input id="trim-sprites" type="checkbox" /> Trim transparent border
+            </label>
+
+            <div class="action-group">
+              <button class="button primary" type="submit">Cut sheet automatically</button>
+            </div>
+            <div id="status" class="status"></div>
+          </form>
+        </section>
+
+        <section class="panel">
+          <h2>Preview</h2>
+          <div id="sprite-preview" class="preview-box">
+            <p>Upload a sheet to preview.</p>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+    <script src="../assets/auth-system.js"></script>
+    <script src="../assets/auth-gate.js"></script>
+    <script>
+      function checkAdminAccess() {
+        if (typeof AuthManager === 'undefined') {
+          setTimeout(checkAdminAccess, 100);
+          return;
+        }
+
+        const currentUser = AuthManager.getSessionUser();
+        const adminLink = document.getElementById('admin-link');
+        
+        if (currentUser) {
+          const user = AuthManager.getUser(currentUser);
+          if (user && user.isAdmin) {
+            adminLink.style.display = 'inline-block';
+          }
+        }
+      }
+
+      checkAdminAccess();
+    </script>
+    <script src="../assets/app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RGB Dumper</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #eef1f4;
+      --panel: #ffffff;
+      --panel-soft: #f6f8fa;
+      --text: #17202a;
+      --muted: #66717d;
+      --line: #d8dee5;
+      --accent: #1769aa;
+      --accent-soft: #e3f0fb;
+      --danger: #a33a32;
+      --shadow: 0 18px 50px rgba(20, 37, 54, .10);
+    }
+
+    [data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #15191d;
+      --panel: #20262c;
+      --panel-soft: #293139;
+      --text: #edf2f6;
+      --muted: #a9b3bd;
+      --line: #3a454f;
+      --accent: #77c7ff;
+      --accent-soft: #213e52;
+      --danger: #ff9b91;
+      --shadow: 0 18px 50px rgba(0, 0, 0, .24);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      background: radial-gradient(circle at 85% -10%, var(--accent-soft), transparent 34%), var(--bg);
+      color: var(--text);
+      font: 15px/1.5 Georgia, "Times New Roman", serif;
+    }
+
+    .shell { width: min(1180px, calc(100% - 36px)); margin: 0 auto; padding: 34px 0 56px; }
+    header { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; margin-bottom: 30px; }
+    .eyebrow { margin: 0 0 6px; color: var(--accent); font: 700 12px/1.2 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .08em; text-transform: uppercase; }
+    h1 { margin: 0; font: 700 clamp(32px, 5vw, 58px)/.95 Georgia, "Times New Roman", serif; letter-spacing: -.03em; }
+    .subhead { max-width: 540px; margin: 12px 0 0; color: var(--muted); font-size: 17px; }
+    button, .file-label { border: 1px solid var(--line); border-radius: 5px; background: var(--panel); color: var(--text); cursor: pointer; font: 700 14px ui-monospace, SFMono-Regular, Consolas, monospace; padding: 10px 13px; }
+    button:hover, .file-label:hover { border-color: var(--accent); color: var(--accent); }
+    .theme-button { white-space: nowrap; }
+    .panel { border: 1px solid var(--line); border-radius: 8px; background: color-mix(in srgb, var(--panel) 94%, transparent); box-shadow: var(--shadow); }
+    .upload { display: grid; place-items: center; min-height: 230px; padding: 30px; text-align: center; border: 1px dashed var(--accent); background: color-mix(in srgb, var(--accent-soft) 45%, var(--panel)); }
+    .upload.dragging { outline: 3px solid color-mix(in srgb, var(--accent) 35%, transparent); }
+    .upload h2 { margin: 0 0 6px; font-size: 25px; }
+    .upload p { margin: 0 0 18px; color: var(--muted); }
+    input[type="file"] { display: none; }
+    .file-label { display: inline-block; border-color: var(--accent); background: var(--accent); color: #fff; }
+    .file-label:hover { color: #fff; filter: brightness(1.08); }
+    .hint { margin-top: 14px; color: var(--muted); font-size: 13px; }
+    .status { min-height: 25px; margin: 17px 0 0; color: var(--danger); }
+    .results { display: none; margin-top: 8px; }
+    .results.visible { display: block; }
+    .toolbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 17px 20px; border-bottom: 1px solid var(--line); }
+    .stats { display: flex; flex-wrap: wrap; gap: 22px; }
+    .stat strong { display: block; font-size: 23px; line-height: 1; }
+    .stat span { color: var(--muted); font: 11px ui-monospace, SFMono-Regular, Consolas, monospace; text-transform: uppercase; }
+    .actions { display: flex; gap: 8px; }
+    .filters { display: flex; gap: 10px; padding: 14px 20px; background: var(--panel-soft); }
+    select, input[type="search"] { min-width: 180px; border: 1px solid var(--line); border-radius: 4px; background: var(--panel); color: var(--text); font: 14px Georgia, "Times New Roman", serif; padding: 9px 10px; }
+      .color-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; padding: 20px; }
+      .color-tile { display: flex; min-height: 82px; align-items: flex-end; padding: 12px; border: 1px solid rgba(0, 0, 0, .14); border-radius: 14px; box-shadow: inset 0 -34px 34px rgba(0, 0, 0, .16), 0 4px 12px rgba(20, 37, 54, .12); color: #fff; cursor: pointer; font: 700 14px/1.2 ui-monospace, SFMono-Regular, Consolas, monospace; overflow-wrap: anywhere; text-shadow: 0 1px 3px rgba(0, 0, 0, .72); transition: transform .16s ease, box-shadow .16s ease; }
+      .color-tile:hover, .color-tile:focus-visible { z-index: 1; outline: none; transform: scale(1.06); box-shadow: inset 0 -34px 34px rgba(0, 0, 0, .16), 0 9px 22px rgba(20, 37, 54, .24); }
+      .color-tile.light-label { color: #17202a; text-shadow: 0 1px 3px rgba(255, 255, 255, .72); }
+      .color-tile small { display: block; margin-top: 5px; font-size: 11px; font-weight: 400; opacity: .9; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th, td { padding: 12px 20px; border-bottom: 1px solid var(--line); }
+    th { color: var(--muted); font: 11px ui-monospace, SFMono-Regular, Consolas, monospace; text-transform: uppercase; }
+    tbody tr:hover { background: var(--panel-soft); }
+    .sprite { max-width: 420px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .swatch { display: inline-block; width: 17px; height: 17px; margin-right: 9px; vertical-align: -3px; border: 1px solid var(--line); border-radius: 3px; }
+    .empty-row { color: var(--muted); text-align: center; }
+    @media (max-width: 650px) {
+      .shell { width: min(100% - 24px, 1180px); padding-top: 22px; }
+      header { margin-bottom: 22px; }
+      .toolbar { align-items: flex-start; flex-direction: column; }
+      .filters { flex-direction: column; }
+      select, input[type="search"] { width: 100%; }
+      th, td { padding: 10px 12px; }
+      .sprite { max-width: 190px; }
+    }
+  </style>
+</head>
+<body data-theme="light">
+  <main class="shell">
+    <header>
+      <div>
+        <p class="eyebrow">Local BIN inspector</p>
+        <h1>RGB Dumper</h1>
+        <p class="subhead">Open a sprite animation file in your browser. Nothing is uploaded, and the parser runs entirely on this device.</p>
+      </div>
+      <button class="theme-button" id="themeButton" type="button">Switch to dark</button>
+    </header>
+
+    <section class="panel upload" id="dropZone">
+      <div>
+        <h2>Choose a BIN file</h2>
+        <p>Drop one here or browse your computer.</p>
+        <label class="file-label" for="fileInput">Browse files</label>
+        <input id="fileInput" type="file" accept=".bin,application/octet-stream">
+        <div class="hint">RGB values of (0, 0, 0) and (255, 255, 255) are omitted.</div>
+      </div>
+    </section>
+    <p class="status" id="status" role="status"></p>
+
+    <section class="panel results" id="results">
+      <div class="toolbar">
+        <div class="stats">
+          <div class="stat"><strong id="resultCount">0</strong><span>RGB entries</span></div>
+          <div class="stat"><strong id="animationCount">0</strong><span>Animations</span></div>
+          <div class="stat"><strong id="layerCount">0</strong><span>Layers</span></div>
+        </div>
+        <div class="actions"><button id="downloadButton" type="button">Download log</button></div>
+      </div>
+      <div class="filters">
+        <select id="animationFilter" aria-label="Filter by animation"><option value="">All animations</option></select>
+        <input id="searchInput" type="search" placeholder="Search sprites or layers" aria-label="Search sprites or layers">
+      </div>
+        <div class="color-grid" id="colorGrid" aria-label="Sprite colors"></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Animation</th><th>Layer</th><th>Sprite</th><th>Red</th><th>Green</th><th>Blue</th></tr></thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    class BinReader {
+      constructor(buffer) { this.data = new DataView(buffer); this.offset = 0; }
+      align(size) { this.offset += (size - (this.offset % size)) % size; this.ensure(size); }
+      ensure(size) { if (this.offset + size > this.data.byteLength) throw new Error("The file ended unexpectedly."); }
+      uint8() { this.align(1); const value = this.data.getUint8(this.offset); this.offset += 1; return value; }
+      uint16() { this.align(2); const value = this.data.getUint16(this.offset, true); this.offset += 2; return value; }
+      uint32() { this.align(4); const value = this.data.getUint32(this.offset, true); this.offset += 4; return value; }
+      int16() { this.align(2); const value = this.data.getInt16(this.offset, true); this.offset += 2; return value; }
+      int32() { this.align(4); const value = this.data.getInt32(this.offset, true); this.offset += 4; return value; }
+      float() { this.align(4); const value = this.data.getFloat32(this.offset, true); this.offset += 4; return value; }
+      string() {
+        const length = this.uint32() - 1;
+        this.ensure(length);
+        const value = new TextDecoder("ascii").decode(new Uint8Array(this.data.buffer, this.offset, length));
+        this.offset += length;
+        this.offset += length % 4 === 0 ? 4 : 4 - (length % 4);
+        this.ensure(0);
+        return value;
+      }
+      immediate() { return this.uint8(); }
+      dataValue() { return { immediate: this.immediate(), value: this.float() }; }
+      dataXY() { return { immediate: this.immediate(), x: this.float(), y: this.float() }; }
+      dataString() { return { immediate: this.immediate(), string: this.string() }; }
+      dataRGB() { return { immediate: this.immediate(), red: this.uint8(), green: this.uint8(), blue: this.uint8() }; }
+      frame() { return { time: this.float(), pos: this.dataXY(), scale: this.dataXY(), rotation: this.dataValue(), opacity: this.dataValue(), sprite: this.dataString(), rgb: this.dataRGB() }; }
+      layer() {
+        const layer = { name: this.string(), type: this.int32(), blend: this.uint32(), parent: this.int16(), id: this.int16(), src: this.int16(), width: this.uint16(), height: this.uint16(), anchorX: this.float(), anchorY: this.float(), unknown: this.string(), frames: [] };
+        const count = this.uint32();
+        if (count > 100000) throw new Error("The file contains an unreasonable number of frames.");
+        for (let i = 0; i < count; i++) layer.frames.push(this.frame());
+        return layer;
+      }
+      animation() {
+        const animation = { name: this.string(), width: this.uint16(), height: this.uint16(), loopOffset: this.float(), centered: this.uint32(), layers: [] };
+        const count = this.uint32();
+        if (count > 10000) throw new Error("The file contains an unreasonable number of layers.");
+        for (let i = 0; i < count; i++) animation.layers.push(this.layer());
+        return animation;
+      }
+      parse() {
+        const sourceCount = this.uint32();
+        if (sourceCount > 10000) throw new Error("The file contains an unreasonable number of sources.");
+        const sources = [];
+        for (let i = 0; i < sourceCount; i++) sources.push({ src: this.string(), id: this.uint16(), width: this.uint16(), height: this.uint16() });
+        const animationCount = this.uint32();
+        if (animationCount > 10000) throw new Error("The file contains an unreasonable number of animations.");
+        const animations = [];
+        for (let i = 0; i < animationCount; i++) animations.push(this.animation());
+        return { sources, animations };
+      }
+    }
+
+    const state = { rows: [], log: "" };
+    const body = document.body;
+    const fileInput = document.getElementById("fileInput");
+    const dropZone = document.getElementById("dropZone");
+    const status = document.getElementById("status");
+    const results = document.getElementById("results");
+      const colorGrid = document.getElementById("colorGrid");
+    const tableBody = document.getElementById("tableBody");
+    const animationFilter = document.getElementById("animationFilter");
+    const searchInput = document.getElementById("searchInput");
+
+    document.getElementById("themeButton").addEventListener("click", () => {
+      const dark = body.dataset.theme !== "dark";
+      body.dataset.theme = dark ? "dark" : "light";
+      document.getElementById("themeButton").textContent = dark ? "Switch to light" : "Switch to dark";
+    });
+
+    function displayRows() {
+      const animation = animationFilter.value.toLowerCase();
+      const search = searchInput.value.trim().toLowerCase();
+      const rows = state.rows.filter(row => (!animation || row.animation.toLowerCase() === animation) && (!search || `${row.sprite} ${row.layer}`.toLowerCase().includes(search)));
+        colorGrid.replaceChildren();
+        for (const row of rows) {
+          const tile = document.createElement("div");
+          const color = `rgb(${row.red}, ${row.green}, ${row.blue})`;
+          const hex = rgbToHex(row.red, row.green, row.blue);
+          const brightness = (row.red * 299 + row.green * 587 + row.blue * 114) / 1000;
+          tile.className = `color-tile${brightness > 165 ? " light-label" : ""}`;
+          tile.tabIndex = 0;
+          tile.setAttribute("role", "button");
+          tile.style.backgroundColor = color;
+          tile.title = `Copy ${hex}`;
+          tile.innerHTML = `${escapeHtml(row.sprite)}<small>${hex}</small>`;
+          tile.addEventListener("click", () => copyHex(hex, row.sprite));
+          tile.addEventListener("keydown", event => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              copyHex(hex, row.sprite);
+            }
+          });
+          colorGrid.appendChild(tile);
+        }
+      tableBody.replaceChildren();
+      if (!rows.length) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = '<td class="empty-row" colspan="6">No matching RGB values</td>';
+        tableBody.appendChild(tr);
+        return;
+      }
+      for (const row of rows) {
+        const tr = document.createElement("tr");
+        const color = `rgb(${row.red}, ${row.green}, ${row.blue})`;
+        tr.innerHTML = `<td>${escapeHtml(row.animation)}</td><td>${escapeHtml(row.layer)}</td><td class="sprite"><span class="swatch" style="background:${color}"></span>${escapeHtml(row.sprite)}</td><td>${row.red}</td><td>${row.green}</td><td>${row.blue}</td>`;
+        tableBody.appendChild(tr);
+      }
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[character]));
+    }
+
+    function rgbToHex(red, green, blue) {
+      return `#${[red, green, blue].map(value => value.toString(16).padStart(2, "0")).join("").toUpperCase()}`;
+    }
+
+    async function copyHex(hex, sprite) {
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(hex);
+        } else {
+          const helper = document.createElement("textarea");
+          helper.value = hex;
+          helper.style.position = "fixed";
+          helper.style.opacity = "0";
+          document.body.appendChild(helper);
+          helper.select();
+          document.execCommand("copy");
+          helper.remove();
+        }
+        status.textContent = `${hex} copied for ${sprite}.`;
+      } catch (error) {
+        status.textContent = `Could not copy ${hex}.`;
+      }
+    }
+
+    function showFile(file) {
+      if (!file) return;
+      status.textContent = "Reading " + file.name + "...";
+      file.arrayBuffer().then(buffer => {
+        const parsed = new BinReader(buffer).parse();
+        state.rows = [];
+        for (const animation of parsed.animations) {
+          for (const layer of animation.layers) {
+            for (const frame of layer.frames) {
+              const { red, green, blue } = frame.rgb;
+              if ((red === 0 && green === 0 && blue === 0) || (red === 255 && green === 255 && blue === 255)) continue;
+              state.rows.push({ animation: animation.name, layer: layer.name, sprite: frame.sprite.string, red, green, blue });
+            }
+          }
+        }
+        state.log = state.rows.map(row => `${row.sprite}: R=${row.red}, G=${row.green}, B=${row.blue}`).join("\n");
+        document.getElementById("resultCount").textContent = state.rows.length;
+        document.getElementById("animationCount").textContent = parsed.animations.length;
+        document.getElementById("layerCount").textContent = parsed.animations.reduce((total, animation) => total + animation.layers.length, 0);
+        animationFilter.replaceChildren(new Option("All animations", ""));
+        for (const animation of parsed.animations) animationFilter.appendChild(new Option(animation.name, animation.name));
+        if (parsed.animations.length) animationFilter.value = parsed.animations[0].name;
+        results.classList.add("visible");
+        status.textContent = state.rows.length ? `${file.name} loaded successfully.` : `${file.name} has no non-default RGB values.`;
+        displayRows();
+      }).catch(error => { results.classList.remove("visible"); status.textContent = `Could not read this file: ${error.message}`; });
+    }
+
+    fileInput.addEventListener("change", event => showFile(event.target.files[0]));
+    ["dragenter", "dragover"].forEach(name => dropZone.addEventListener(name, event => { event.preventDefault(); dropZone.classList.add("dragging"); }));
+    ["dragleave", "drop"].forEach(name => dropZone.addEventListener(name, event => { event.preventDefault(); dropZone.classList.remove("dragging"); }));
+    dropZone.addEventListener("drop", event => showFile(event.dataTransfer.files[0]));
+    animationFilter.addEventListener("change", displayRows);
+    searchInput.addEventListener("input", displayRows);
+    document.getElementById("downloadButton").addEventListener("click", () => {
+      const blob = new Blob([state.log], { type: "text/plain;charset=utf-8" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "rgb_log.txt";
+      link.click();
+      URL.revokeObjectURL(link.href);
+    });
+  </script>
+</body>
+</html>

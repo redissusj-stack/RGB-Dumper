@@ -1,0 +1,5 @@
+Team unity tree test/auth-state.json
+Team unity tree test/.venv/
+Team unity tree test/__pycache__/
+Team unity tree test/.pytest_cache/
+dumper/__pycache__/

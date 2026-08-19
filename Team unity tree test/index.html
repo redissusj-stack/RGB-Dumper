@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sprite Sheet Cutter</title>
+    <script>
+      (function () {
+        try {
+          const savedTheme = localStorage.getItem('sprite-cutter-theme');
+          const theme = savedTheme === 'light' ? 'light' : 'dark';
+          document.documentElement.setAttribute('data-theme', theme);
+        } catch (error) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      })();
+    </script>
+    <link rel="stylesheet" href="assets/style.css?v=3" />
+    <script src="assets/auth-system.js"></script>
+    <script src="assets/auth-gate.js"></script>
+  </head>
+  <body data-page="home">
+    <header class="topbar">
+      <div class="container nav">
+        <div class="brand">Team Unity Tree Sprite Cutter</div>
+        <nav>
+          <a href="index.html">Home</a>
+          <a href="pages/sprite-cutter.html">Sprite Sheet</a>
+          <a href="pages/xml-cutter.html">.XML Cutter</a>
+          <a href="pages/meta-cutter.html">Meta Cutter</a>
+          <a href="pages/rgb-dumper.html">RGB Dumper</a>
+        </nav>
+        <div class="theme-switcher" aria-label="Theme switcher" data-theme-switcher>
+          <button class="theme-toggle" type="button" data-theme-option="light" aria-pressed="false">Light</button>
+          <button class="theme-toggle is-active" type="button" data-theme-option="dark" aria-pressed="true">Dark</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="container landing">
+      <div class="utility-actions">
+        <a class="button secondary" href="auth-login.html">Login</a>
+        <a class="button secondary" href="auth-admin.html" id="admin-link" hidden>Admin Panel</a>
+      </div>
+      <section class="hero card">
+        <p class="eyebrow">Team Unity Tree</p>
+        <h1>Spritesheet Splitter</h1>
+        <p>
+          Separate Sprite sheets into separate individual images. Supports XML (MSM1) and Meta files (MSM Guide).
+        </p>
+        <div class="hero-actions">
+          <a class="button primary" href="pages/sprite-cutter.html">Open Sprite Cutter</a>
+          <a class="button secondary" href="pages/xml-cutter.html">Open .XML Cutter</a>
+        </div>
+      </section>
+
+      <section class="grid">
+        <a class="card tool-card" href="pages/sprite-cutter.html">
+          <h2>Sprite Sheet Cutter</h2>
+          <p>Split a sheet by grid size, padding, and border settings.</p>
+          <span class="tool-link">Click here</span>
+        </a>
+
+        <a class="card tool-card" href="pages/xml-cutter.html">
+          <h2>.XML Cutter</h2>
+          <p>Load a spritesheet and .XML file to export each frame as a PNG.</p>
+          <span class="tool-link">Click here</span>
+        </a>
+
+        <a class="card tool-card" href="pages/meta-cutter.html">
+          <h2>.meta Cutter</h2>
+          <p>Cut sprites from spritesheets using .meta file definitions.</p>
+          <span class="tool-link">Click here</span>
+        </a>
+
+        <a class="card tool-card" href="pages/rgb-dumper.html">
+          <h2>RGB Dumper</h2>
+          <p>Inspect BIN sprite colors, copy hex values, and export an RGB log.</p>
+          <span class="tool-link">Click here</span>
+        </a>
+      </section>
+    </main>
+
+    <script src="assets/auth-system.js"></script>
+    <script>
+      function checkAdminAccess() {
+        if (typeof AuthManager === 'undefined') {
+          setTimeout(checkAdminAccess, 100);
+          return;
+        }
+
+        const currentUser = AuthManager.getSessionUser();
+        const adminLink = document.getElementById('admin-link');
+        
+        if (currentUser) {
+          const user = AuthManager.getUser(currentUser);
+          if (user && user.isAdmin) {
+            adminLink.style.display = 'inline-block';
+          }
+        }
+      }
+
+      checkAdminAccess();
+    </script>
+    <script src="assets/app.js"></script>

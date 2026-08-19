@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin - Sprite Sheet Cutter</title>
+    <script>
+      (function () {
+        try {
+          const savedTheme = localStorage.getItem('sprite-cutter-theme');
+          const theme = savedTheme === 'light' ? 'light' : 'dark';
+          document.documentElement.setAttribute('data-theme', theme);
+        } catch (error) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      })();
+    </script>
+    <link rel="stylesheet" href="assets/style.css?v=3" />
+    <style>
+      .user-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px;
+        border: 1px solid var(--border);
+        margin-bottom: 12px;
+        border-radius: 8px;
+        background: var(--panel-alt);
+        transition: all 0.2s ease;
+      }
+
+      .user-item:hover {
+        background: var(--panel);
+        border-color: var(--primary);
+      }
+
+      .user-info {
+        flex: 1;
+      }
+
+      .user-name {
+        font-weight: 600;
+        color: var(--text);
+        font-size: 1.1em;
+      }
+
+      .user-status {
+        font-size: 0.9em;
+        color: var(--muted);
+        margin-top: 6px;
+      }
+
+      .status-requested {
+        color: #f39c12;
+        font-weight: 500;
+      }
+
+      .role-button {
+        background: transparent;
+        border: 1px solid var(--border);
+        padding: 8px 14px;
+        border-radius: 6px;
+        cursor: pointer;
+        color: var(--text);
+        font-size: 0.9em;
+        transition: all 0.2s ease;
+        margin-left: 12px;
+        font-weight: 500;
+      }
+
+      .role-button:hover {
+        background: var(--primary);
+        border-color: var(--primary);
+        color: white;
+        transform: scale(1.15);
+      }
+
+      .role-menu {
+        position: absolute;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        box-shadow: 0 4px 12px var(--shadow);
+        z-index: 1000;
+        min-width: 150px;
+      }
+
+      .role-option {
+        display: block;
+        width: 100%;
+        padding: 10px 14px;
+        text-align: left;
+        border: none;
+        background: transparent;
+        color: var(--text);
+        cursor: pointer;
+        font-size: 0.95em;
+      }
+
+      .role-option:hover {
+        background: var(--primary);
+        color: white;
+      }
+
+      .user-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .name-color-control {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--muted);
+        font-size: 0.85em;
+      }
+
+      .name-color-input {
+        width: 32px;
+        height: 32px;
+        padding: 2px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        background: transparent;
+        cursor: pointer;
+      }
+
+      .delete-button {
+        background: #c0392b;
+        border: 1px solid #a93226;
+        color: white;
+        padding: 6px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.85em;
+        transition: all 0.2s ease;
+        font-weight: 500;
+      }
+
+      .delete-button:hover {
+        background: #a93226;
+        border-color: #922b21;
+        transform: scale(1.15);
+      }
+
+      .delete-button:active {
+        transform: scale(0.98);
+      }
+
+      .add-button {
+        background: var(--primary);
+        border: none;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 1em;
+        transition: all 0.2s ease;
+        font-weight: 500;
+        margin-bottom: 20px;
+      }
+
+      .add-button:hover {
+        background: #a92d55;
+        transform: scale(1.08);
+      }
+
+      .token-section {
+        margin-top: 12px;
+        padding: 12px;
+        background: var(--input-bg);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        font-family: monospace;
+        font-size: 0.85em;
+        word-break: break-all;
+      }
+
+      .token-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 8px;
+        flex-wrap: wrap;
+      }
+
+      .token-action-button {
+        padding: 4px 10px;
+        font-size: 0.8em;
+        border: 1px solid var(--border);
+        background: transparent;
+        border-radius: 4px;
+        cursor: pointer;
+        color: var(--text);
+        transition: all 0.2s ease;
+      }
+
+      .token-action-button:hover {
+        background: var(--primary);
+        border-color: var(--primary);
+        color: white;
+        transform: scale(1.12);
+      }
+
+      .modal-backdrop {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 10000;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .modal-backdrop.active {
+        display: flex;
+      }
+
+      .modal-content {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 24px;
+        max-width: 400px;
+        width: 90%;
+        box-shadow: 0 10px 40px var(--shadow);
+        z-index: 10001;
+      }
+
+      .modal-content h3 {
+        margin-top: 0;
+      }
+
+      .modal-content label {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-bottom: 16px;
+        font-weight: 500;
+      }
+
+      .modal-content input {
+        padding: 10px 12px;
+        border: 1px solid var(--border);
+        background: var(--input-bg);
+        color: var(--text);
+        border-radius: 6px;
+        font-family: inherit;
+        font-size: 0.95em;
+      }
+
+      .modal-content input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 2px rgba(169, 45, 77, 0.1);
+      }
+
+      .create-user-options {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+
+      .option-button {
+        flex: 1;
+        padding: 12px;
+        border: 2px solid var(--border);
+        background: var(--input-bg);
+        color: var(--text);
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s ease;
+      }
+
+      .option-button:hover {
+        border-color: var(--primary);
+        background: var(--panel-alt);
+      }
+
+      .option-button.selected {
+        border-color: var(--primary);
+        background: var(--primary);
+        color: white;
+      }
+
+      .modal-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        margin-top: 20px;
+      }
+
+      .modal-actions button {
+        padding: 10px 20px;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        font-size: 0.95em;
+      }
+
+      .modal-actions .primary {
+        background: var(--primary);
+        color: white;
+        min-width: 100px;
+      }
+
+      .modal-actions .primary:hover {
+        background: #a92d55;
+        transform: scale(1.08);
+      }
+
+      .modal-actions .primary:active {
+        transform: scale(0.98);
+      }
+
+      .modal-actions .secondary {
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--text);
+        min-width: 100px;
+      }
+
+      .modal-actions .secondary:hover {
+        background: var(--panel-alt);
+        border-color: var(--primary);
+        transform: scale(1.08);
+      }
+
+      .modal-actions .secondary:active {
+        transform: scale(0.98);
+      }
+
+      .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+      }
+
+      .deleted-users-section {
+        background: var(--panel-alt);
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        margin-top: 12px;
+      }
+
+      .deleted-user-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        margin-bottom: 8px;
+      }
+
+      .deleted-user-info {
+        flex: 1;
+      }
+
+      .deleted-user-name {
+        font-weight: 600;
+        color: var(--text);
+      }
+
+      .deleted-user-details {
+        font-size: 0.85em;
+        color: var(--muted);
+        margin-top: 4px;
+      }
+
+      .delete-permanently-button {
+        background: #e74c3c;
+        border: none;
+        color: white;
+        padding: 6px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.8em;
+        transition: all 0.2s ease;
+        font-weight: 500;
+      }
+
+      .delete-permanently-button:hover {
+        background: #c0392b;
+        transform: scale(1.08);
+      }
+
+      .approve-button {
+        background: #27ae60;
+        border: 1px solid #229954;
+        color: white;
+        padding: 6px 14px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.85em;
+        transition: all 0.2s ease;
+        font-weight: 500;
+        margin-left: 8px;
+      }
+
+      .approve-button:hover {
+        background: #229954;
+        border-color: #1e8449;
+        transform: scale(1.15);
+      }
+
+      .approve-button:active {
+        transform: scale(0.98);
+      }
+
+      @media (max-width: 1200px) {
+        div[style*="display: flex; gap: 20px"] {
+          flex-direction: column !important;
+        }
+      }
+    </style>
+  </head>
+  <body data-page="admin" class="admin-panel-page">
+    <header class="topbar">
+      <div class="container nav">
+        <div class="brand">Team Unity Tree Sprite Cutter</div>
+        <nav>
+          <a href="index.html">Home</a>
+          <a href="pages/sprite-cutter.html">Sprite Sheet</a>
+          <a href="pages/xml-cutter.html">.XML Cutter</a>
+          <a href="pages/meta-cutter.html">Meta Cutter</a>
+          <a href="pages/rgb-dumper.html">RGB Dumper</a>
+        </nav>
+        <div class="theme-switcher" aria-label="Theme switcher" data-theme-switcher>
+          <button class="theme-toggle" type="button" data-theme-option="light" aria-pressed="false">Light</button>
+          <button class="theme-toggle is-active" type="button" data-theme-option="dark" aria-pressed="true">Dark</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <div class="utility-actions">
+        <a class="button secondary" href="auth-login.html">Login</a>
+        <a class="button secondary" href="auth-admin.html" id="admin-self-link" hidden>Admin Panel</a>
+        <a class="button secondary" href="index.html" id="return-tool">Back to Home</a>
+      </div>
+      <div class="page-header">
+        <p class="eyebrow">Administration</p>
+        <h1>Admin Panel</h1>
+        <p>Manage users and access settings.</p>
+      </div>
+
+      <div class="workspace" style="display: flex; flex-direction: column; gap: 20px;">
+        <div style="display: flex; gap: 20px; flex: 1;">
+          <section class="panel" style="flex: 1; min-height: 400px; display: flex; flex-direction: column;">
+            <div class="section-header">
+              <h2 style="margin: 0;">Recent Users</h2>
+              <button class="add-button" onclick="openCreateUserModal()">+ Create User</button>
+            </div>
+            <div id="recent-users-list" style="margin-top: 12px; flex: 1;">
+              <p class="muted">Loading users...</p>
+            </div>
+          </section>
+
+          <section class="panel" style="flex: 1; min-height: 400px; display: flex; flex-direction: column;">
+            <h2 style="margin: 0 0 12px 0;">Deleted Users</h2>
+            <div id="deleted-users-list" style="margin-top: 12px; flex: 1;">
+              <p class="muted">No deleted users.</p>
+            </div>
+          </section>
+        </div>
+
+        <section class="panel">
+          <h2>All Users</h2>
+          <div id="users-list" style="margin-top: 12px;">
+            <p class="muted">Loading users...</p>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- Delete User Modal -->
+    <div id="delete-modal" class="modal-backdrop">
+      <div class="modal-content">
+        <h3>Delete User</h3>
+        <p id="delete-confirm-text"></p>
+        <label>
+          Reason (optional)
+          <input id="delete-reason" type="text" placeholder="Why delete this user?" />
+        </label>
+        <div class="modal-actions">
+          <button class="secondary" onclick="closeDeleteModal()">Cancel</button>
+          <button class="primary" onclick="confirmDelete()">Delete</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Create User Modal -->
+    <div id="create-user-modal" class="modal-backdrop">
+      <div class="modal-content">
+        <h3>Create User</h3>
+        <p>Select account type:</p>
+        <div class="create-user-options">
+          <button class="option-button selected" id="user-option" onclick="selectUserType('user')">👤 User</button>
+          <button class="option-button" id="admin-option" onclick="selectUserType('admin')">👑 Admin</button>
+        </div>
+        <label>
+          Username
+          <input id="create-username" type="text" placeholder="Enter username" />
+        </label>
+        <div class="modal-actions">
+          <button class="secondary" onclick="closeCreateUserModal()">Cancel</button>
+          <button class="primary" onclick="confirmCreateUser()">Create</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Custom Token Modal -->
+    <div id="token-modal" class="modal-backdrop">
+      <div class="modal-content">
+        <h3>Set Custom Token</h3>
+        <p id="token-modal-user"></p>
+        <label>
+          Custom Token
+          <input id="custom-token-input" type="text" placeholder="Enter custom token" />
+        </label>
+        <div class="modal-actions">
+          <button class="secondary" onclick="closeTokenModal()">Cancel</button>
+          <button class="primary" onclick="confirmCustomToken()">Set Token</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="assets/auth-system.js"></script>
+    <script>
+      function protectAdminPage() {
+        if (typeof AuthManager === 'undefined') {
+          setTimeout(protectAdminPage, 100);
+          return;
+        }
+
+        const currentUser = AuthManager.getSessionUser();
+        
+        if (!currentUser) {
+          window.location.href = 'auth-login.html';
+          return;
+        }
+
+        const user = AuthManager.getUser(currentUser);
+        if (!user || !user.isAdmin) {
+          window.location.href = 'index.html';
+          return;
+        }
+      }
+
+      protectAdminPage();
+
+      let allUsers = [];
+      let pendingDeleteUser = null;
+      let pendingTokenUser = null;
+      let createUserType = 'user';
+
+      function loadUsers() {
+        if (typeof AuthManager === 'undefined') {
+          document.getElementById('users-list').innerHTML = '<p class="error">Auth system not loaded.</p>';
+          return;
+        }
+
+        allUsers = AuthManager.listUsers();
+        
+        // Sort by creation date (most recent first)
+        allUsers.sort((a, b) => {
+          const dateA = new Date(a.createdAt || 0);
+          const dateB = new Date(b.createdAt || 0);
+          return dateB - dateA;
+        });
+
+        // Display recent users (first 5)
+        displayRecentUsers();
+        
+        // Display all users
+        displayAllUsers();
+
+        // Display deleted users
+        displayDeletedUsers();
+      }
+
+      function bindUserActionButtons() {
+        document.querySelectorAll('.role-button').forEach((button) => {
+          const username = button.dataset.username;
+          if (!username) return;
+          button.onclick = () => toggleRoleMenu(username);
+        });
+
+        document.querySelectorAll('.token-action-button').forEach((button) => {
+          const action = button.dataset.action;
+          const username = button.dataset.username;
+          if (!username || !action) return;
+
+          button.onclick = () => {
+            if (action === 'token') openTokenModal(username);
+            if (action === 'revoke') revokeToken(username);
+            if (action === 'generate') generateNewToken(username);
+          };
+        });
+
+        document.querySelectorAll('.delete-button').forEach((button) => {
+          const username = button.dataset.username;
+          if (!username) return;
+          button.onclick = () => deleteUserWithReason(username);
+        });
+
+        document.querySelectorAll('.name-color-save-button').forEach((button) => {
+          const username = button.dataset.username;
+          if (!username) return;
+          button.onclick = () => {
+            const input = button.closest('.user-actions')?.querySelector('.name-color-input');
+            saveNameColor(username, input ? input.value : '');
+          };
+        });
+      }
+
+      function displayRecentUsers() {
+        const recentUsersList = document.getElementById('recent-users-list');
+        const recentUsers = allUsers.slice(0, 5);
+
+        if (recentUsers.length === 0) {
+          recentUsersList.innerHTML = '<p class="muted">No users created yet.</p>';
+          return;
+        }
+
+        let html = '';
+        for (const user of recentUsers) {
+          const roleText = user.isAdmin ? 'Admin' : 'User';
+          const statusText = user.isAllowed ? 'Approved' : 'Pending';
+          const hasToken = user.token ? 'Yes' : 'No';
+          const tokenStatus = !user.token ? '<span class="status-requested">(Requested User)</span>' : '';
+          const approveButton = !user.isAllowed ? `<button class="approve-button" type="button" data-username="${escapeAttribute(user.username)}" onclick="approveUser('${escapeAttribute(user.username)}')">✓ Approve</button>` : '';
+          const tokenDisplay = user.isAllowed && user.token ? `<div class="token-section">${escapeHtml(user.token)}</div>` : '';
+          
+          html += `
+            <div class="user-item">
+              <div class="user-info">
+                <div class="user-name">${escapeHtml(user.username)} ${approveButton}</div>
+                <div class="user-status">${roleText} • ${statusText} • Token: ${hasToken} ${tokenStatus}</div>
+                ${tokenDisplay}
+              </div>
+              <div class="user-actions">
+                <button class="role-button" type="button" data-username="${escapeAttribute(user.username)}">+ Role</button>
+                <button class="token-action-button" type="button" data-action="token" data-username="${escapeAttribute(user.username)}">Token</button>
+                <label class="name-color-control">Name <input class="name-color-input" type="color" value="${escapeAttribute(user.nameColor)}" aria-label="Name color for ${escapeAttribute(user.username)}" /></label>
+                <button class="token-action-button name-color-save-button" type="button" data-username="${escapeAttribute(user.username)}">Save Color</button>
+                <button class="delete-button" type="button" data-username="${escapeAttribute(user.username)}" onclick="deleteUserWithReason('${escapeAttribute(user.username)}')">Delete</button>
+              </div>
+            </div>
+          `;
+        }
+        recentUsersList.innerHTML = html;
+        bindUserActionButtons();
+      }
+
+      function displayAllUsers() {
+        const usersList = document.getElementById('users-list');
+
+        if (allUsers.length === 0) {
+          usersList.innerHTML = '<p class="muted">No users created yet.</p>';
+          return;
+        }
+
+        let html = '';
+        for (const user of allUsers) {
+          const roleText = user.isAdmin ? 'Admin' : 'User';
+          const statusText = user.isAllowed ? 'Approved' : 'Pending';
+          const createdDate = new Date(user.createdAt).toLocaleString();
+          const tokenDisplay = user.isAllowed && user.token ? `<div class="token-section">${escapeHtml(user.token)}</div>` : '<div class="token-section" style="color: var(--muted);">No token assigned</div>';
+          
+          html += `
+            <div class="user-item">
+              <div class="user-info">
+                <div class="user-name">${escapeHtml(user.username)}</div>
+                <div class="user-status">${roleText} • ${statusText} • Created: ${createdDate}</div>
+                ${tokenDisplay}
+                <div class="token-actions">
+                  <button class="token-action-button" type="button" data-action="revoke" data-username="${escapeAttribute(user.username)}">Revoke Token</button>
+                  <button class="token-action-button" type="button" data-action="generate" data-username="${escapeAttribute(user.username)}">Generate New</button>
+                  <button class="token-action-button" type="button" data-action="token" data-username="${escapeAttribute(user.username)}">Custom</button>
+                  <label class="name-color-control">Name <input class="name-color-input" type="color" value="${escapeAttribute(user.nameColor)}" aria-label="Name color for ${escapeAttribute(user.username)}" /></label>
+                  <button class="token-action-button name-color-save-button" type="button" data-username="${escapeAttribute(user.username)}">Save Color</button>
+                </div>
+              </div>
+              <div class="user-actions">
+                <button class="role-button" type="button" data-username="${escapeAttribute(user.username)}">+ Role</button>
+                <button class="delete-button" type="button" data-username="${escapeAttribute(user.username)}" onclick="deleteUserWithReason('${escapeAttribute(user.username)}')">Delete</button>
+              </div>
+            </div>
+          `;
+        }
+        usersList.innerHTML = html;
+        bindUserActionButtons();
+      }
+
+      function displayDeletedUsers() {
+        const deletedList = document.getElementById('deleted-users-list');
+        
+        if (typeof AuthManager === 'undefined') {
+          deletedList.innerHTML = '<p class="error">Auth system not loaded.</p>';
+          return;
+        }
+
+        const deletedUsers = Object.values(AuthManager.getDeletedUsers());
+
+        if (deletedUsers.length === 0) {
+          deletedList.innerHTML = '<p class="muted">No deleted users.</p>';
+          return;
+        }
+
+        const currentUser = AuthManager.getSessionUser();
+        const isKanjigar = currentUser && currentUser.toLowerCase() === 'kanjigar';
+
+        let html = '';
+        for (const user of deletedUsers) {
+          const deletedDate = new Date(user.deletedAt).toLocaleString();
+          const reason = user.deleteReason || 'No reason provided';
+          
+          html += `
+            <div class="deleted-user-item">
+              <div class="deleted-user-info">
+                <div class="deleted-user-name">${escapeHtml(user.username)}</div>
+                <div class="deleted-user-details">Deleted: ${deletedDate} | Reason: ${escapeHtml(reason)}</div>
+              </div>
+              ${isKanjigar ? `<button class="delete-permanently-button" onclick="confirmPermanentDelete('${user.username}')">Permanently Delete</button>` : ''}
+            </div>
+          `;
+        }
+        deletedList.innerHTML = html;
+      }
+
+      function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+      }
+
+      function escapeAttribute(text) {
+        return String(text || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      }
+
+      function toggleRoleMenu(username) {
+        const user = allUsers.find(u => u.username === username);
+        if (!user) return;
+
+        const currentRole = user.isAdmin ? 'Admin' : 'User';
+        const newRole = user.isAdmin ? 'User' : 'Admin';
+
+        if (confirm(`Change ${username}'s role from ${currentRole} to ${newRole}?`)) {
+          changeUserRole(username, newRole === 'Admin');
+        }
+      }
+
+      function changeUserRole(username, makeAdmin) {
+        if (typeof AuthManager === 'undefined') {
+          alert('Auth system not loaded.');
+          return;
+        }
+
+        let result;
+        if (makeAdmin) {
+          result = AuthManager.promoteToAdmin(username);
+        } else {
+          result = AuthManager.demoteFromAdmin(username);
+        }
+
+        if (result.success) {
+          loadUsers();
+          alert(result.message);
+        } else {
+          alert('Error: ' + result.message);
+        }
+      }
+
+      function saveNameColor(username, color) {
+        if (typeof AuthManager === 'undefined') {
+          alert('Auth system not loaded.');
+          return;
+        }
+
+        const result = AuthManager.setNameColor(username, color);
+        if (result.success) {
+          const currentUser = AuthManager.getSessionUser();
+          if (currentUser && currentUser.toLowerCase() === username.toLowerCase()) {
+            document.querySelectorAll('.current-user-name').forEach((name) => {
+              name.style.color = result.user.nameColor;
+            });
+          }
+          loadUsers();
+          alert(result.message);
+        } else {
+          alert('Error: ' + result.message);
+        }
+      }
+
+      function deleteUserWithReason(username) {
+        if (!username) {
+          return;
+        }
+
+        if (typeof AuthManager === 'undefined') {
+          alert('Auth system not loaded.');
+          return;
+        }
+
+        const reason = window.prompt(`Delete user "${username}"?\n\nOptional reason:`, '');
+        if (reason === null) {
+          return;
+        }
+
+        const trimmedReason = String(reason || '').trim();
+        const result = AuthManager.deleteUser(username, trimmedReason || 'Admin deletion');
+
+        if (result.success) {
+          loadUsers();
+          alert(result.message);
+          return;
+        }
+
+        alert('Error: ' + result.message);
+      }
+
+      function deleteUserNow(username) {
+        deleteUserWithReason(username);
+      }
+
+      function openDeleteModal(username) {
+        pendingDeleteUser = username;
+        const modal = document.getElementById('delete-modal');
+        const confirmText = document.getElementById('delete-confirm-text');
+        const reasonInput = document.getElementById('delete-reason');
+
+        if (confirmText) {
+          confirmText.textContent = `Delete user "${username}"?`;
+        }
+
+        if (reasonInput) {
+          reasonInput.value = '';
+        }
+
+        if (modal) {
+          modal.classList.add('active');
+        }
+      }
+
+      function closeDeleteModal() {
+        const modal = document.getElementById('delete-modal');
+        if (modal) {
+          modal.classList.remove('active');
+        }
+        pendingDeleteUser = null;
+      }
+
+      function confirmDelete() {
+        if (!pendingDeleteUser) {
+          return;
+        }
+
+        if (typeof AuthManager === 'undefined') {
+          alert('Auth system not loaded.');
+          return;
+        }
+
+        const reason = document.getElementById('delete-reason')
+          ? document.getElementById('delete-reason').value.trim()
+          : '';
+
+        const result = AuthManager.deleteUser(pendingDeleteUser, reason || 'Admin deletion');
+        if (result.success) {
+          closeDeleteModal();
+          loadUsers();
+          alert(result.message);
+          return;
+        }
+
+        alert('Error: ' + result.message);
+      }
+
+      function confirmPermanentDelete(username) {
+        if (!confirm(`Permanently delete "${username}" from deleted users? This cannot be undone.`)) {
+          return;
+        }
+
+        if (typeof AuthManager === 'undefined') {
+          alert('Auth system not loaded.');
+          return;
+        }
+
+        const result = AuthManager.permanentlyDeleteUser(username);
+        if (result.success) {
+          loadUsers();
+          alert(result.message);
+        } else {
+          alert('Error: ' + result.message);
+        }
+      }
+
+      function openCreateUserModal() {
+        createUserType = 'user';
+        document.getElementById('user-option').classList.add('selected');
+        document.getElementById('admin-option').classList.remove('selected');
+        document.getElementById('create-username').value = '';
+        const modal = document.getElementById('create-user-modal');
+        if (modal) {
+          modal.classList.add('active');
+        }
+      }
+
+      function closeCreateUserModal() {
+        const modal = document.getElementById('create-user-modal');
+        if (modal) {
+          modal.classList.remove('active');
+        }
+      }
+
+      function selectUserType(type) {
+        createUserType = type;
+        if (type === 'user') {
+          document.getElementById('user-option').classList.add('selected');
+          document.getElementById('admin-option').classList.remove('selected');
+        } else {
+          document.getElementById('user-option').classList.remove('selected');
+          document.getElementById('admin-option').classList.add('selected');
+        }
+      }
+
+      function confirmCreateUser() {
+        if (typeof AuthManager === 'undefined') {
+          alert('Auth system not loaded.');
+          return;
+        }
+
+        const username = document.getElementById('create-username').value.trim();
+        if (!username) {
+          alert('Username cannot be empty.');
+          return;
+        }
+
+        const result = AuthManager.createUser(username);
+        if (result.success) {
+          const user = result.user;
+          
+          // If creating an admin, promote them
+          if (createUserType === 'admin' && !user.isAdmin) {
+            const promoteResult = AuthManager.promoteToAdmin(username);
+            if (!promoteResult.success) {
+              alert('Created user but failed to make them admin: ' + promoteResult.message);
+              loadUsers();
+              closeCreateUserModal();
+              return;
+            }
+          }
+
+          loadUsers();
+          alert(`User "${username}" created successfully!\n\nToken: ${user.token}\n\nType: ${createUserType === 'admin' ? 'Admin' : 'User'}`);
+          closeCreateUserModal();
+        } else {
+          alert('Error: ' + result.message);
+        }
+      }
+
+      function openTokenModal(username) {
+        console.log('Opening token modal for:', username);
+        pendingTokenUser = username;
+        const modal = document.getElementById('token-modal');
+        const userText = document.getElementById('token-modal-user');
+        
+        if (userText) {
+          userText.textContent = `Set custom token for "${username}"`;
+        }
+        
+        const tokenInput = document.getElementById('custom-token-input');
+        if (tokenInput) {
+          tokenInput.value = '';
+        }
+        
+        if (modal) {
+          modal.classList.add('active');
+          console.log('Token modal opened');
+        } else {
+          console.error('Token modal element not found');
+        }
+      }
+
+      function closeTokenModal() {
+        console.log('Closing token modal');
+        const modal = document.getElementById('token-modal');
+        if (modal) {
+          modal.classList.remove('active');
+        }
+        pendingTokenUser = null;
+      }
+
+      function confirmCustomToken() {
+        if (!pendingTokenUser) {
+          console.error('No user selected for token change');
+          return;
+        }
+
+        if (typeof AuthManager === 'undefined') {
+          alert('Auth system not loaded.');
+          return;
+        }
+
+        const customToken = document.getElementById('custom-token-input').value.trim();
+        if (!customToken) {
+          alert('Token cannot be empty.');
+          return;
+        }
+
+        console.log('Setting custom token for:', pendingTokenUser);
+        const result = AuthManager.setCustomToken(pendingTokenUser, customToken);
+        console.log('Token result:', result);
+        
+        if (result.success) {
+          loadUsers();
+          alert(result.message);
+          closeTokenModal();
+        } else {
+          alert('Error: ' + result.message);
+        }
+      }
+
+      function revokeToken(username) {
+        if (confirm(`Revoke token for user "${username}"?`)) {
+          if (typeof AuthManager === 'undefined') {
+            alert('Auth system not loaded.');
+            return;
+          }
+
+          console.log('Revoking token for:', username);
+          const result = AuthManager.revokeUserToken(username);
+          console.log('Revoke result:', result);
+          
+          if (result.success) {
+            loadUsers();
+            alert(result.message);
+          } else {
+            alert('Error: ' + result.message);
+          }
+        }
+      }
+
+      function generateNewToken(username) {
+        if (confirm(`Generate a new token for user "${username}"?`)) {
+          if (typeof AuthManager === 'undefined') {
+            alert('Auth system not loaded.');
+            return;
+          }
+
+          console.log('Generating new token for:', username);
+          const result = AuthManager.generateNewToken(username);
+          console.log('Generate result:', result);
+          
+          if (result.success) {
+            loadUsers();
+            alert(`New token generated:\n\n${result.token}\n\nMake sure to share it with the user!`);
+          } else {
+            alert('Error: ' + result.message);
+          }
+        }
+      }
+
+      function approveUser(username) {
+        if (typeof AuthManager === 'undefined') {
+          alert('Auth system not loaded.');
+          return;
+        }
+
+        const user = AuthManager.getUser(username);
+        if (!user) {
+          alert('User not found.');
+          return;
+        }
+
+        if (user.isAllowed) {
+          alert('User is already approved.');
+          return;
+        }
+
+        let token = user.token;
+        
+        // Generate a token if the user doesn't have one
+        if (!token) {
+          const generateResult = AuthManager.generateNewToken(username);
+          if (!generateResult.success) {
+            alert('Error generating token: ' + generateResult.message);
+            return;
+          }
+          token = generateResult.token;
+        }
+
+        if (confirm(`Approve user "${username}" with token:\n\n${token}?`)) {
+          const result = AuthManager.setUserAccess(username, {
+            isAllowed: true,
+            token: token,
+            reason: 'Approved by admin'
+          });
+
+          if (result.success) {
+            loadUsers();
+            alert(`User "${username}" has been approved!\n\nToken: ${token}\n\nMake sure to share this token with the user!`);
+          } else {
+            alert('Error: ' + result.message);
+          }
+        }
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        initializeThemeControls();
+        loadUsers();
+
+        // Close modals when clicking outside
+        const deleteModal = document.getElementById('delete-modal');
+        const createUserModal = document.getElementById('create-user-modal');
+        const tokenModal = document.getElementById('token-modal');
+
+        if (deleteModal) {
+          deleteModal.addEventListener('click', (e) => {
+            if (e.target === deleteModal) {
+              closeDeleteModal();
+            }
+          });
+        }
+
+        if (createUserModal) {
+          createUserModal.addEventListener('click', (e) => {
+            if (e.target === createUserModal) {
+              closeCreateUserModal();
+            }
+          });
+        }
+
+        if (tokenModal) {
+          tokenModal.addEventListener('click', (e) => {
+            if (e.target === tokenModal) {
+              closeTokenModal();
+            }
+          });
+        }
+
+        console.log('Admin panel initialized');
+      });
+    </script>
+    <script src="assets/app.js"></script>
+    <script>
+      const returnTool = document.getElementById('return-tool');
+      const toolBySource = {
+        xml: { label: '.XML Cutter', href: 'pages/xml-cutter.html' },
+        meta: { label: '.meta Cutter', href: 'pages/meta-cutter.html' },
+        sprite: { label: 'Sprite Sheet Cutter', href: 'pages/sprite-cutter.html' },
+        rgb: { label: 'RGB Values Extractor', href: 'pages/rgb-dumper.html' },
+      };
+      const sourceTool = toolBySource[new URLSearchParams(window.location.search).get('from')];
+
+      if (sourceTool && returnTool) {
+        returnTool.textContent = `Back to ${sourceTool.label}`;
+        returnTool.href = sourceTool.href;
+        returnTool.hidden = false;
+      }
+    </script>
+  </body>
+</html>

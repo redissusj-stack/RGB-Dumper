@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - Sprite Sheet Cutter</title>
+    <script>
+      (function () {
+        try {
+          const savedTheme = localStorage.getItem('sprite-cutter-theme');
+          const theme = savedTheme === 'light' ? 'light' : 'dark';
+          document.documentElement.setAttribute('data-theme', theme);
+        } catch (error) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      })();
+    </script>
+    <link rel="stylesheet" href="assets/style.css?v=3" />
+    <style>
+      .login-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .login-card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 40px;
+        max-width: 400px;
+        width: 100%;
+        box-shadow: 0 10px 40px var(--shadow);
+      }
+
+      .login-card h1 {
+        margin-top: 0;
+        text-align: center;
+      }
+
+      .login-card .eyebrow {
+        text-align: center;
+      }
+
+      .tab-buttons {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 24px;
+      }
+
+      .tab-button {
+        flex: 1;
+        padding: 8px 12px;
+        border: 1px solid var(--border);
+        background: transparent;
+        color: var(--text);
+        cursor: pointer;
+        border-radius: 6px;
+        font-size: 0.9em;
+        transition: all 0.2s ease;
+      }
+
+      .tab-button.active {
+        background: var(--primary);
+        border-color: var(--primary);
+        color: white;
+      }
+
+      .tab-content {
+        display: none;
+      }
+
+      .tab-content.active {
+        display: block;
+      }
+
+      .token-display {
+        background: var(--input-bg);
+        border: 1px solid var(--border);
+        padding: 12px;
+        border-radius: 6px;
+        word-break: break-all;
+        font-family: monospace;
+        font-size: 0.85em;
+        margin-top: 8px;
+        user-select: all;
+      }
+
+      .copy-button {
+        padding: 4px 8px;
+        font-size: 0.85em;
+        margin-top: 8px;
+      }
+
+      .login-utility {
+        position: absolute;
+        top: 20px;
+        right: 24px;
+        margin: 0;
+      }
+
+      @media (max-width: 560px) {
+        .login-utility {
+          position: static;
+          justify-content: center;
+          padding: 16px 16px 0;
+        }
+      }
+    </style>
+  </head>
+  <body data-page="login">
+    <div class="utility-actions login-utility">
+      <a class="button secondary" href="auth-login.html">Login</a>
+      <a class="button secondary" href="auth-admin.html" id="admin-link" hidden>Admin Panel</a>
+    </div>
+    <div class="login-container">
+      <div class="login-card">
+        <p class="eyebrow">Access</p>
+        <h1>Sprite Cutter</h1>
+        
+        <div class="tab-buttons">
+          <button class="tab-button active" onclick="switchTab('login')">Sign In</button>
+          <button class="tab-button" onclick="switchTab('create')">Create Account</button>
+        </div>
+
+        <!-- Sign In Tab -->
+        <div id="login-tab" class="tab-content active">
+          <form id="login-form">
+            <label>
+              Username
+              <input id="login-username" type="text" placeholder="Enter your username" required autofocus />
+            </label>
+            
+            <label>
+              Token
+              <input id="login-token" type="password" placeholder="Enter your token" required />
+            </label>
+            
+            <div class="action-group">
+              <button class="button primary" type="submit">Sign In</button>
+            </div>
+            <div id="login-status" class="status"></div>
+          </form>
+        </div>
+
+        <!-- Create Account Tab -->
+        <div id="create-tab" class="tab-content">
+          <form id="create-form">
+            <label>
+              Username
+              <input id="create-username" type="text" placeholder="Choose a username" required />
+            </label>
+            
+            <div class="action-group">
+              <button class="button primary" type="submit">Create Account</button>
+            </div>
+            <div id="create-status" class="status"></div>
+            
+            <div id="token-section" style="display: none; margin-top: 16px;">
+              <p style="margin-bottom: 8px;"><strong>Your Token (save this!):</strong></p>
+              <div id="generated-token" class="token-display"></div>
+              <button type="button" class="button secondary copy-button" onclick="copyToken()">Copy Token</button>
+              <p style="font-size: 0.85em; margin-top: 12px; color: var(--muted);">
+                ⚠️ Save this token! You'll need it to sign in. An admin must approve your account before you can access the app.
+              </p>
+            </div>
+          </form>
+        </div>
+
+        <p style="text-align: center; margin-top: 20px; font-size: 0.9em;">
+          <a href="index.html">Back to home</a>
+        </p>
+      </div>
+    </div>
+
+    <script src="assets/auth-system.js"></script>
+    <script src="assets/app.js"></script>
+    <script>
+      window.ensureProjectAccess = () => true;
+
+      function switchTab(tab) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-button').forEach(el => el.classList.remove('active'));
+        
+        document.getElementById(tab + '-tab').classList.add('active');
+        event.target.classList.add('active');
+      }
+
+      function copyToken() {
+        const token = document.getElementById('generated-token').textContent;
+        navigator.clipboard.writeText(token).then(() => {
+          const btn = event.target;
+          const originalText = btn.textContent;
+          btn.textContent = 'Copied!';
+          setTimeout(() => {
+            btn.textContent = originalText;
+          }, 2000);
+        });
+      }
+
+      document.getElementById('login-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        const username = document.getElementById('login-username').value.trim();
+        const token = document.getElementById('login-token').value.trim();
+        const status = document.getElementById('login-status');
+
+        if (!username || !token) {
+          status.textContent = 'Username and token are required.';
+          status.className = 'status error';
+          return;
+        }
+
+        if (typeof AuthManager === 'undefined') {
+          status.textContent = 'Auth system not loaded.';
+          status.className = 'status error';
+          return;
+        }
+
+        const result = AuthManager.signIn(username, token);
+        if (!result.success) {
+          status.textContent = result.message;
+          status.className = 'status error';
+          return;
+        }
+
+        // Redirect to home or referring page
+        window.location.href = 'index.html';
+      });
+
+      document.getElementById('create-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        const username = document.getElementById('create-username').value.trim();
+        const status = document.getElementById('create-status');
+        const tokenSection = document.getElementById('token-section');
+
+        if (!username) {
+          status.textContent = 'Username is required.';
+          status.className = 'status error';
+          return;
+        }
+
+        if (typeof AuthManager === 'undefined') {
+          status.textContent = 'Auth system not loaded.';
+          status.className = 'status error';
+          return;
+        }
+
+        const result = AuthManager.createUser(username);
+        if (!result.success) {
+          status.textContent = result.message;
+          status.className = 'status error';
+          return;
+        }
+
+        // Hide token section - only show after admin approval
+        tokenSection.style.display = 'none';
+        status.textContent = 'Account request submitted. An admin can now review it from the admin panel.';
+        status.className = 'status success';
+        
+        // Disable form after success
+        document.getElementById('create-form').style.opacity = '0.6';
+        document.getElementById('create-form').style.pointerEvents = 'none';
+      });
+
+      document.addEventListener('DOMContentLoaded', () => {
+        initializeThemeControls();
+      });
+    </script>
+    <script src="assets/app.js"></script>
+  </body>
+</html>
+

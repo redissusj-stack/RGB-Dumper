@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RGB Dumper | Team Unity Tree</title>
+    <script>
+      (function () {
+        try {
+          const savedTheme = localStorage.getItem('sprite-cutter-theme');
+          document.documentElement.setAttribute('data-theme', savedTheme === 'light' ? 'light' : 'dark');
+        } catch (error) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      })();
+    </script>
+    <link rel="stylesheet" href="../assets/style.css?v=3" />
+    <style>
+      .rgb-upload { border: 1px dashed var(--accent); border-radius: 12px; padding: 28px; text-align: center; background: var(--panel-alt); }
+      .rgb-upload.dragging { outline: 3px solid rgba(241, 181, 198, .35); }
+      .rgb-upload input { margin: 18px auto 0; display: block; }
+      .rgb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: 12px; margin: 18px 0; }
+      .rgb-tile { min-height: 82px; display: flex; align-items: flex-end; padding: 12px; border: 1px solid rgba(0, 0, 0, .18); border-radius: 14px; color: #fff; cursor: pointer; font: 700 13px/1.2 ui-monospace, SFMono-Regular, Consolas, monospace; overflow-wrap: anywhere; text-shadow: 0 1px 3px rgba(0, 0, 0, .75); box-shadow: inset 0 -34px 34px rgba(0, 0, 0, .16), 0 5px 14px rgba(0, 0, 0, .18); transition: transform .16s ease, box-shadow .16s ease; }
+      .rgb-tile:hover, .rgb-tile:focus-visible { z-index: 1; outline: none; transform: scale(1.06); box-shadow: inset 0 -34px 34px rgba(0, 0, 0, .16), 0 10px 24px rgba(0, 0, 0, .3); }
+      .rgb-tile.light-label { color: #17202a; text-shadow: 0 1px 3px rgba(255, 255, 255, .72); }
+      .rgb-tile small { display: block; margin-top: 5px; font-size: 11px; font-weight: 400; }
+      .rgb-filters { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+      .rgb-filters select, .rgb-filters input { min-width: 190px; }
+      .rgb-table-wrap { overflow-x: auto; }
+      .rgb-table { width: 100%; border-collapse: collapse; text-align: left; }
+      .rgb-table th, .rgb-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+      .rgb-table th { color: var(--muted); font-size: 11px; text-transform: uppercase; }
+      .rgb-swatch { display: inline-block; width: 16px; height: 16px; margin-right: 7px; vertical-align: -3px; border-radius: 4px; border: 1px solid var(--border); }
+      @media (max-width: 650px) { .rgb-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    </style>
+    <script src="../assets/auth-system.js"></script>
+    <script src="../assets/auth-gate.js"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="container nav">
+        <div class="brand">Team Unity Tree</div>
+        <nav>
+          <a href="../index.html">Home</a>
+          <a href="sprite-cutter.html">Sprite Sheet</a>
+          <a href="xml-cutter.html">.XML Cutter</a>
+          <a href="meta-cutter.html">Meta Cutter</a>
+          <a href="rgb-dumper.html">RGB Dumper</a>
+        </nav>
+        <div class="theme-switcher" aria-label="Theme switcher" data-theme-switcher>
+          <button class="theme-toggle" type="button" data-theme-option="light" aria-pressed="false">Light</button>
+          <button class="theme-toggle is-active" type="button" data-theme-option="dark" aria-pressed="true">Dark</button>
+        </div>
+      </div>
+    </header>
+    <main class="container">
+      <div class="utility-actions">
+        <a class="button secondary" href="../auth-login.html">Login</a>
+        <a class="button secondary" href="../auth-admin.html?from=rgb" id="admin-link" hidden>Admin Panel</a>
+      </div>
+      <div class="page-header">
+        <p class="eyebrow">RGB Dumper</p>
+        <h1>Inspect sprite animation colors</h1>
+        <p>Choose a BIN file to extract non-default RGB values locally in your browser.</p>
+      </div>
+      <section class="panel">
+        <div id="rgb-drop-zone" class="rgb-upload">
+          <h2>Load a BIN file</h2>
+          <p class="status">The file stays on this device.</p>
+          <input id="rgb-file-input" type="file" accept=".bin,application/octet-stream" />
+        </div>
+        <p id="rgb-status" class="status" role="status"></p>
+        <div id="rgb-results" hidden>
+          <div class="rgb-filters">
+            <select id="rgb-animation-filter" aria-label="Animation filter"><option value="">All animations</option></select>
+            <input id="rgb-search" type="search" placeholder="Search sprites or layers" aria-label="Search sprites or layers" />
+            <button class="button secondary" id="rgb-download" type="button">Download RGB log</button>
+          </div>
+          <div id="rgb-grid" class="rgb-grid" aria-label="Sprite color tiles"></div>
+          <div class="rgb-table-wrap">
+            <table class="rgb-table">
+              <thead><tr><th>Animation</th><th>Layer</th><th>Sprite</th><th>Red</th><th>Green</th><th>Blue</th></tr></thead>
+              <tbody id="rgb-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+    <script src="../assets/app.js"></script>
+    <script src="../assets/rgb-dumper.js"></script>
+  </body>
+</html>
