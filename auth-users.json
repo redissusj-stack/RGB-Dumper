@@ -1,0 +1,18 @@
+{
+  "users": {
+    "kanjigar": {
+      "username": "kanjigar",
+      "isAdmin": true,
+      "isAllowed": true,
+      "token": "KANJIGAR-ADMIN",
+      "tokenUsed": false,
+      "tokenCreatedAt": "2026-08-19T00:00:00.000Z",
+      "tokenUsedAt": null,
+      "reason": "Admin account",
+      "createdAt": "2026-08-19T00:00:00.000Z",
+      "sessionActive": false,
+      "nameColor": "#f59e0b"
+    }
+  },
+  "deletedUsers": {}
+}

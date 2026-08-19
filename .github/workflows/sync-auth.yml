@@ -1,0 +1,23 @@
+name: Sync Auth Data to GitHub
+
+on:
+  repository_dispatch:
+    types: [update-auth]
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Commit auth state
+        run: |
+          git config user.name "Auth Bot"
+          git config user.email "noreply@github.com"
+          if git diff --quiet auth-users.json; then
+            echo "No auth changes"
+          else
+            git add auth-users.json
+            git commit -m "Update auth state"
+            git push
+          fi
