@@ -15,6 +15,16 @@
       return null;
     }
 
+    // Skip remote API if we're on GitHub Pages without a proper backend configured
+    if (window.AUTH_CONFIG && window.AUTH_CONFIG.isGitHubPages) {
+      // Only try if explicitly configured to a working backend
+      const backend = window.AUTH_CONFIG.primaryBackend;
+      if (!backend || backend.includes('onrender.com')) {
+        // Render backend not deployed yet, use localStorage only
+        return null;
+      }
+    }
+
     // Try the configured AUTH_API_URL
     if (!/^https?:\/\//i.test(AUTH_API_URL) && AUTH_API_URL.charAt(0) !== '/') {
       return null;
@@ -24,7 +34,7 @@
       const request = new XMLHttpRequest();
       request.open('GET', AUTH_API_URL, false);
       request.setRequestHeader('Accept', 'application/json');
-      request.timeout = 3000; // 3 second timeout
+      request.timeout = 1000; // 1 second timeout
       request.send();
       if (request.status >= 200 && request.status < 300) {
         const state = JSON.parse(request.responseText);
@@ -32,16 +42,23 @@
       }
     } catch (error) {
       // Network error or timeout - will fall back to localStorage
+      console.log('Auth backend unavailable, using localStorage');
     }
 
     return null;
   }
 
   function writeSharedState(users, deletedUsers) {
+    // Don't try to write to unavailable remote API
+    if (window.AUTH_CONFIG && window.AUTH_CONFIG.isGitHubPages) {
+      return false; // Fall back to localStorage
+    }
+
     try {
       const request = new XMLHttpRequest();
       request.open('PUT', AUTH_API_URL, false);
       request.setRequestHeader('Content-Type', 'application/json');
+      request.timeout = 1000; // 1 second timeout
       request.send(JSON.stringify({ users, deletedUsers }));
       return request.status >= 200 && request.status < 300;
     } catch (error) {
